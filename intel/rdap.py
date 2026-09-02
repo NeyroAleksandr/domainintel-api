@@ -1,13 +1,30 @@
 """WHOIS data via RDAP — the official successor to WHOIS (RFC 7483).
 
 rdap.org bootstraps to the authoritative registry. JSON, keyless, free.
+TLDs without public RDAP (.ru/.su/.рф) fall back to classic whois on port 43.
 """
 
 from __future__ import annotations
 
+import asyncio
+import socket
+
 import httpx
 
 RDAP_BASE = "https://rdap.org"
+
+WHOIS43_SERVERS = {
+    "ru": "whois.tcinet.ru",
+    "su": "whois.tcinet.ru",
+    "xn--p1ai": "whois.tcinet.ru",  # .рф
+}
+
+_WHOIS43_FIELDS = {
+    "registrar": "registrar",
+    "created": "created",
+    "paid-till": "expires",
+    "org": "registrant",
+}
 
 
 def _parse_events(events: list[dict]) -> dict[str, str]:
@@ -47,11 +64,64 @@ def _parse_entities(entities: list[dict]) -> dict[str, str]:
     return out
 
 
+def _whois43_query(domain: str, server: str, timeout: float = 12.0) -> str:
+    with socket.create_connection((server, 43), timeout=timeout) as sock:
+        sock.sendall(f"{domain}\r\n".encode())
+        chunks: list[bytes] = []
+        while True:
+            data = sock.recv(4096)
+            if not data:
+                break
+            chunks.append(data)
+    return b"".join(chunks).decode("utf-8", errors="ignore")
+
+
+def _parse_whois43(domain: str, raw: str) -> dict:
+    result: dict = {"domain": domain, "source": "whois43"}
+    status: list[str] = []
+    nameservers: list[str] = []
+    for line in raw.splitlines():
+        if ":" not in line or line.lstrip().startswith("%"):
+            continue
+        key, _, value = line.partition(":")
+        key, value = key.strip().lower(), value.strip()
+        if not value:
+            continue
+        if key == "state":
+            status = [s.strip() for s in value.split(",")]
+        elif key == "nserver":
+            nameservers.append(value.rstrip(".").lower())
+        elif key in _WHOIS43_FIELDS and _WHOIS43_FIELDS[key] not in result:
+            result[_WHOIS43_FIELDS[key]] = value
+    if status:
+        result["status"] = status
+    if nameservers:
+        result["nameservers"] = nameservers
+    if "No entries found" in raw:
+        result["error"] = "domain is not registered"
+    return result
+
+
+async def _whois43_fallback(domain: str) -> dict | None:
+    tld = domain.rsplit(".", 1)[-1]
+    server = WHOIS43_SERVERS.get(tld)
+    if not server:
+        return None
+    try:
+        raw = await asyncio.to_thread(_whois43_query, domain, server)
+    except OSError as e:
+        return {"domain": domain, "source": "whois43", "error": f"{type(e).__name__}: {e}"}
+    return _parse_whois43(domain, raw)
+
+
 async def domain_rdap(domain: str, client: httpx.AsyncClient) -> dict:
     result: dict = {"domain": domain, "source": "rdap"}
     try:
         resp = await client.get(f"{RDAP_BASE}/domain/{domain}")
         if resp.status_code == 404:
+            fallback = await _whois43_fallback(domain)
+            if fallback is not None:
+                return fallback
             result["error"] = "domain not found in RDAP (unregistered or unsupported TLD)"
             return result
         resp.raise_for_status()
