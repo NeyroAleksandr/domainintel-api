@@ -93,7 +93,10 @@ STATIC_DIR = Path(__file__).parent / "static"
 
 @app.get("/", include_in_schema=False)
 async def root() -> FileResponse:
-    return FileResponse(STATIC_DIR / "index.html")
+    return FileResponse(
+        STATIC_DIR / "index.html",
+        headers={"Cache-Control": "no-cache"},
+    )
 
 
 @app.get("/api")
