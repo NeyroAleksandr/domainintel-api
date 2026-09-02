@@ -1,0 +1,19 @@
+services:
+  domainintel:
+    build: .
+    container_name: domainintel
+    restart: unless-stopped
+    environment:
+      - ADMIN_TOKEN=${ADMIN_TOKEN:?set ADMIN_TOKEN in .env}
+      - DEMO_DAILY=${DEMO_DAILY:-5}
+      - TRUST_PROXY=1
+      - DOMAININTEL_DB=/srv/domainintel/data/domainintel.db
+    volumes:
+      - ./data:/srv/domainintel/data
+    networks:
+      - tzcloud
+
+networks:
+  tzcloud:
+    external: true
+    name: tz-cloud_default
