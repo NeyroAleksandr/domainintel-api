@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DomainIntel — досье на любой сайт за 5 секунд</title>
+<meta name="description" content="WHOIS, DNS, технологии, SEO и SSL любого домена одним запросом. 5 проверок в день бесплатно.">
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --text: #1a2233; --muted: #64748b;
+    --accent: #2563eb; --accent-soft: #dbeafe; --ok: #16a34a; --warn: #d97706;
+    --bad: #dc2626; --bad-soft: #fee2e2; --border: #e2e8f0; --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--bg); color: var(--text); min-height: 100vh;
+    font: 16px/1.55 -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    padding: 32px 16px 64px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 1.7rem; margin-bottom: 6px; }
+  .sub { color: var(--muted); margin-bottom: 24px; }
+  form { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  input[type=text] {
+    flex: 1 1 240px; padding: 13px 16px; font-size: 1.05rem;
+    border: 1.5px solid var(--border); border-radius: var(--radius);
+    outline: none; background: var(--card); color: var(--text);
+  }
+  input[type=text]:focus { border-color: var(--accent); }
+  button {
+    padding: 13px 26px; font-size: 1.05rem; font-weight: 600; cursor: pointer;
+    background: var(--accent); color: #fff; border: 0; border-radius: var(--radius);
+  }
+  button:disabled { opacity: .6; cursor: wait; }
+  .hint { color: var(--muted); font-size: .85rem; margin-bottom: 24px; }
+  .status { padding: 14px 18px; border-radius: var(--radius); margin-bottom: 18px; display: none; }
+  .status.loading { display: block; background: var(--accent-soft); }
+  .status.error { display: block; background: var(--bad-soft); color: var(--bad); }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px 20px; margin-bottom: 14px;
+  }
+  .card h2 { font-size: 1.02rem; margin-bottom: 10px; }
+  .row { display: flex; gap: 10px; padding: 3px 0; }
+  .row .k { color: var(--muted); flex: 0 0 175px; }
+  .row .v { word-break: break-word; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 999px;
+    padding: 3px 12px; font-size: .85rem;
+  }
+  .chip.acc { background: var(--accent-soft); border-color: transparent; color: var(--accent); font-weight: 600; }
+  .issue { color: var(--bad); padding: 2px 0; }
+  .good { color: var(--ok); font-weight: 600; }
+  .warn { color: var(--warn); font-weight: 600; }
+  #results { display: none; }
+  .pricing { margin-top: 40px; border-top: 1px solid var(--border); padding-top: 24px; }
+  .pricing h2 { font-size: 1.15rem; margin-bottom: 12px; }
+  .plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .plan { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
+  .plan b { font-size: 1.05rem; }
+  .plan .price { font-size: 1.3rem; font-weight: 700; margin: 6px 0; }
+  .plan .per { color: var(--muted); font-size: .85rem; }
+  .buy { margin-top: 14px; color: var(--muted); font-size: .92rem; }
+  .buy a { color: var(--accent); }
+  .keybox { margin-top: 14px; font-size: .9rem; color: var(--muted); }
+  .keybox input { width: 100%; margin-top: 6px; padding: 9px 12px; font-size: .9rem;
+    border: 1.5px solid var(--border); border-radius: 8px; }
+  footer { margin-top: 34px; color: var(--muted); font-size: .85rem; }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Досье на любой сайт за 5 секунд</h1>
+  <p class="sub">Кто владелец, на чём сделан, какие SEO-проблемы, когда истекает сертификат — одним запросом.</p>
+
+  <form id="f">
+    <input type="text" id="domain" placeholder="Введите домен, например ozon.ru" autocomplete="off" autofocus>
+    <button id="go" type="submit">Проверить</button>
+  </form>
+  <p class="hint">Бесплатно — 5 проверок в день. Больше — тарифы внизу страницы.</p>
+
+  <div id="status" class="status"></div>
+  <div id="results"></div>
+
+  <div class="pricing">
+    <h2>Нужно больше проверок или доступ по API?</h2>
+    <div class="plans">
+      <div class="plan"><b>Демо</b><div class="price">0 ₽</div><div class="per">5 проверок в день</div></div>
+      <div class="plan"><b>Старт</b><div class="price">490 ₽/мес</div><div class="per">500 запросов в день · или $6 в крипте</div></div>
+      <div class="plan"><b>Про</b><div class="price">1490 ₽/мес</div><div class="per">5000 запросов в день · или $18 в крипте</div></div>
+    </div>
+    <p class="buy">Купить ключ: напишите на <a href="mailto:aa04193@gmail.com?subject=DomainIntel%20API%20key">aa04193@gmail.com</a> — оплата ЮMoney или криптой, ключ в ответном письме. Для программ: <a href="/docs">документация API</a>, <a href="https://github.com/NeyroAleksandr/domainintel-api">открытый код</a>.</p>
+    <div class="keybox">
+      Уже есть ключ? Вставьте — лимиты вырастут прямо здесь:
+      <input type="text" id="apikey" placeholder="di_...">
+    </div>
+  </div>
+
+  <footer>DomainIntel · данные из открытых источников: RDAP, DNS-over-HTTPS, прямые замеры · <a href="/docs">API</a></footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var f = document.getElementById("f");
+  var input = document.getElementById("domain");
+  var btn = document.getElementById("go");
+  var status = document.getElementById("status");
+  var results = document.getElementById("results");
+  var apikey = document.getElementById("apikey");
+
+  apikey.value = localStorage.getItem("di_key") || "";
+  apikey.addEventListener("change", function () {
+    localStorage.setItem("di_key", apikey.value.trim());
+  });
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function row(k, v) {
+    return v ? '<div class="row"><div class="k">' + k + '</div><div class="v">' + v + "</div></div>" : "";
+  }
+  function chips(arr, acc) {
+    if (!arr || !arr.length) return "";
+    return '<div class="chips">' + arr.map(function (t) {
+      return '<span class="chip' + (acc ? " acc" : "") + '">' + esc(t) + "</span>";
+    }).join("") + "</div>";
+  }
+  function date(iso) {
+    if (!iso) return "";
+    var d = new Date(iso);
+    return isNaN(d) ? esc(iso) : d.toLocaleDateString("ru-RU");
+  }
+  function card(title, body) {
+    return body ? '<div class="card"><h2>' + title + "</h2>" + body + "</div>" : "";
+  }
+
+  function render(d) {
+    var html = "";
+    var w = d.whois || {};
+    html += card("📋 Регистрация",
+      row("Регистратор", esc(w.registrar)) +
+      row("Зарегистрирован", date(w.created)) +
+      row("Истекает", date(w.expires)) +
+      row("DNSSEC", w.dnssec === undefined ? "" : (w.dnssec ? '<span class="good">включён</span>' : "выключен")) +
+      (w.error ? row("Статус", esc(w.error)) : ""));
+
+    var ip = d.ip || {}, dns = d.dns || {};
+    html += card("🌍 Хостинг",
+      row("IP", esc(dns.primary_ip)) +
+      row("Владелец сети", esc(ip.organization || ip.network_name)) +
+      row("Страна", esc(ip.country)) +
+      row("Reverse DNS", esc(dns.reverse_dns)));
+
+    var t = d.tech || {};
+    var techBody = "";
+    if (t.cms && t.cms.length) techBody += row("Платформа", chips(t.cms, true));
+    if (t.server) techBody += row("Сервер", esc(t.server));
+    if (t.technologies && t.technologies.length) techBody += row("Технологии", chips(t.technologies));
+    if (!techBody && !t.error) techBody = row("Платформа", "не определена");
+    html += card("⚙️ Технологии", techBody);
+
+    var s = d.seo || {};
+    var seoBody = row("Заголовок", esc(s.title)) +
+      row("Описание", esc(s.meta_description)) +
+      row("Скорость ответа", s.response_ms ? s.response_ms + " мс" : "") +
+      row("HTTPS", s.https === undefined ? "" : (s.https ? '<span class="good">да</span>' : '<span class="issue">нет</span>'));
+    if (s.issues && s.issues.length) {
+      seoBody += '<div class="row"><div class="k">Проблемы (' + s.issues.length + ')</div><div class="v">' +
+        s.issues.map(function (i) { return '<div class="issue">• ' + esc(i) + "</div>"; }).join("") + "</div></div>";
+    } else if (!s.error) {
+      seoBody += row("Проблемы", '<span class="good">не найдены</span>');
+    }
+    html += card("🔎 SEO", seoBody);
+
+    var c = d.ssl || {};
+    var days = c.days_left;
+    var daysHtml = "";
+    if (days !== undefined) {
+      var cls = days > 30 ? "good" : (days > 7 ? "warn" : "issue");
+      daysHtml = '<span class="' + cls + '">' + days + " дн.</span>";
+    }
+    html += card("🔐 Сертификат",
+      row("Выдан", esc(c.issuer)) +
+      row("Осталось", daysHtml) +
+      row("Протокол", esc(c.tls_version)) +
+      (c.error ? row("Статус", esc(c.error)) : ""));
+
+    var recs = dns.records || {};
+    var dnsBody = "";
+    ["A", "AAAA", "MX", "NS", "TXT"].forEach(function (rt) {
+      if (recs[rt]) dnsBody += row(rt, esc(recs[rt].slice(0, 4).join(", ")));
+    });
+    html += card("🗄 DNS", dnsBody);
+
+    results.innerHTML = html;
+    results.style.display = "block";
+  }
+
+  f.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var domain = input.value.trim();
+    if (!domain) return;
+    btn.disabled = true;
+    results.style.display = "none";
+    status.className = "status loading";
+    status.textContent = "Собираю досье на " + domain + "… обычно 3–7 секунд";
+
+    var headers = {};
+    var key = (apikey.value || "").trim();
+    if (key) headers["X-API-Key"] = key;
+
+    fetch("/v1/report/" + encodeURIComponent(domain), { headers: headers })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, code: r.status, j: j }; }); })
+      .then(function (res) {
+        status.className = "status";
+        status.textContent = "";
+        if (res.ok) { render(res.j); return; }
+        status.className = "status error";
+        if (res.code === 429) {
+          status.textContent = "Дневной лимит бесплатных проверок исчерпан. Тарифы — внизу страницы, ключ приходит на почту за пару часов.";
+        } else if (res.code === 400) {
+          status.textContent = "Это не похоже на домен. Введите адрес вида example.com — без пробелов и опечаток.";
+        } else {
+          status.textContent = "Ошибка: " + esc(res.j && res.j.detail ? res.j.detail : res.code);
+        }
+      })
+      .catch(function () {
+        status.className = "status error";
+        status.textContent = "Сеть недоступна или сервис перегружен. Попробуйте ещё раз.";
+      })
+      .finally(function () { btn.disabled = false; });
+  });
+})();
+</script>
+</body>
+</html>

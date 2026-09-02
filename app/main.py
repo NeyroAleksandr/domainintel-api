@@ -20,8 +20,11 @@ import os
 from contextlib import asynccontextmanager
 from datetime import date
 
+from pathlib import Path
+
 import httpx
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from app import db
@@ -85,8 +88,16 @@ def _domain_or_400(raw: str) -> str:
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 
-@app.get("/")
-async def root() -> dict:
+STATIC_DIR = Path(__file__).parent / "static"
+
+
+@app.get("/", include_in_schema=False)
+async def root() -> FileResponse:
+    return FileResponse(STATIC_DIR / "index.html")
+
+
+@app.get("/api")
+async def api_info() -> dict:
     return {
         "service": "DomainIntel API",
         "docs": "/docs",
