@@ -63,9 +63,11 @@
   .plan .per { color: var(--muted); font-size: .85rem; }
   .buy { margin-top: 14px; color: var(--muted); font-size: .92rem; }
   .buy a { color: var(--accent); }
-  .keybox { margin-top: 14px; font-size: .9rem; color: var(--muted); }
-  .keybox input { width: 100%; margin-top: 6px; padding: 9px 12px; font-size: .9rem;
+  .keybox { margin-top: 16px; }
+  .keybox input { width: 100%; margin-top: 4px; padding: 11px 14px; font-size: .95rem;
     border: 1.5px solid var(--border); border-radius: 8px; }
+  .keybox input:focus { border-color: var(--accent); outline: none; }
+  .keynote { color: var(--muted); font-size: .82rem; margin-top: 6px; }
   footer { margin-top: 34px; color: var(--muted); font-size: .85rem; }
   footer a { color: var(--accent); }
 </style>
@@ -91,10 +93,11 @@
       <div class="plan"><b>Старт</b><div class="price">490 ₽/мес</div><div class="per">500 запросов в день · или $6 в крипте</div></div>
       <div class="plan"><b>Про</b><div class="price">1490 ₽/мес</div><div class="per">5000 запросов в день · или $18 в крипте</div></div>
     </div>
-    <p class="buy">Купить ключ: напишите на <a href="mailto:aa04193@gmail.com?subject=DomainIntel%20API%20key">aa04193@gmail.com</a> — оплата ЮMoney или криптой, ключ в ответном письме. Для программ: <a href="/docs">документация API</a>, <a href="https://github.com/NeyroAleksandr/domainintel-api">открытый код</a>.</p>
-    <div class="keybox">
-      Уже есть ключ? Вставьте — лимиты вырастут прямо здесь:
-      <input type="text" id="apikey" placeholder="di_...">
+    <p class="buy" id="buyline">Купить ключ: напишите мне в MAX — оплата ЮMoney или криптой, ключ пришлю в ответ. Для программ: <a href="/docs">документация API</a>, <a href="https://github.com/NeyroAleksandr/domainintel-api">открытый код</a>.</p>
+    <div class="card keybox" id="keybox">
+      <h2>🔑 Купили ключ? Вставьте его сюда</h2>
+      <input type="text" id="apikey" placeholder="di_... — вставьте ключ в это поле и проверяйте без ограничений">
+      <div class="keynote">Ключ запомнится в вашем браузере — вводить каждый раз не нужно.</div>
     </div>
   </div>
 
@@ -222,7 +225,7 @@
         if (res.ok) { render(res.j); return; }
         status.className = "status error";
         if (res.code === 429) {
-          status.textContent = "Дневной лимит бесплатных проверок исчерпан. Тарифы — внизу страницы, ключ приходит на почту за пару часов.";
+          status.textContent = "Дневной лимит бесплатных проверок исчерпан. Тарифы — внизу страницы: напишите в MAX, ключ придёт в ответ.";
         } else if (res.code === 400) {
           status.textContent = "Это не похоже на домен. Введите адрес вида example.com — без пробелов и опечаток.";
         } else {

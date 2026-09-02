@@ -77,7 +77,7 @@ Don't want to host it yourself? A managed instance is live at **https://api.dire
 curl https://api.direct-shablony.online/v1/report/example.com
 ```
 
-Free demo: 5 requests/day. For an API key with higher limits, email **aa04193@gmail.com** — crypto and YooMoney accepted, no Western card required.
+Free demo: 5 requests/day. For an API key with higher limits, see pricing and contact on the [landing page](https://api.direct-shablony.online/) — crypto and YooMoney accepted, no Western card required.
 
 ## License
 
